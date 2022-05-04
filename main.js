@@ -6,15 +6,13 @@ let config = {
         default: "arcade",
         arcade: { fps: 60 } 
     },
-    scene: [TestScene]
+    scene: [DashScene, DanceScene]
 }
 
 //keys and setup
-let key_left, key_right, key_up, key_down;
-let pointer;
+let key_left, key_right, key_up, key_down, key_next, key_prev;
+let game_settings;
 
-let game_settings = {
-    playerSpeed: 50
-}
+
 
 let game = new Phaser.Game(config);
