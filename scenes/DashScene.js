@@ -19,7 +19,6 @@ class DashScene extends Phaser.Scene {
 
     preload(){
         this.load.image('white square', './assets/White square.png');
-        this.load.image('white arrow', './assets/White arrow.png');
     }
 
     create(){
@@ -92,6 +91,9 @@ class DashScene extends Phaser.Scene {
         if (Phaser.Input.Keyboard.JustDown(key_prev)){
             this.scene.start('DanceScene');
         }
+        if (Phaser.Input.Keyboard.JustDown(key_next)){
+            this.scene.start('DodgeScene');
+        }
     }
 
     updateUI(){
@@ -101,7 +103,7 @@ class DashScene extends Phaser.Scene {
 
     spawnEnemy(){
         let new_enemy = this.physics.add.sprite(game.config.width/3, game.config.height/2, 'white square').setTint(0xFF0000);
-        this.setRandomPosition(new_enemy);
+        this.setRandomPositionOutside(new_enemy);
         this.enemies.push(new_enemy);
     }
 
@@ -127,13 +129,28 @@ class DashScene extends Phaser.Scene {
         }
     }
 
-    setRandomPosition(obj){
-        obj.setPosition(Phaser.Math.Between(50, game.config.width-50), Phaser.Math.Between(50, game.config.height-50));
+    setRandomPositionOutside(obj){
+        let max = 150;
+        switch (Phaser.Math.Between(1, 4)){
+            case 1:
+                obj.setPosition(Phaser.Math.Between(game.config.width+50, game.config.width+max), Phaser.Math.Between(-50, game.config.height+50));
+                break;
+            case 2:
+                obj.setPosition(Phaser.Math.Between(-50, -max), Phaser.Math.Between(-50, game.config.height+50));
+                break;
+            case 3:
+                obj.setPosition(Phaser.Math.Between(-50, game.config.width+50), Phaser.Math.Between(-50, -max));
+                break;
+            case 4:
+                obj.setPosition(Phaser.Math.Between(-50, game.config.width+50), Phaser.Math.Between(game.config.height + 50, game.config.height + max));
+                break;
+        }
+        
     }
 
     enemyPlayerCollision(playerObj, enemy){
         if (this.player.dashing){
-            this.setRandomPosition(enemy);
+            this.setRandomPositionOutside(enemy);
             this.score += 10;
         } else {
             this.player.health-= 1;
@@ -142,7 +159,7 @@ class DashScene extends Phaser.Scene {
             }
             this.cameras.main.shake(150, 0.003);
             playerObj.setPosition(game.config.width/2, game.config.height/2);
-            this.setRandomPosition(enemy);
+            this.setRandomPositionOutside(enemy);
         }
 
         this.updateUI();
@@ -197,10 +214,6 @@ class DashScene extends Phaser.Scene {
                 }
                 break;
         }
-
-
-
-
     }
 
     SetupKeys(){

@@ -1,5 +1,5 @@
 function initDance(){
-    console.log('initializing dash scene');
+    console.log('initializing dance scene');
 
     game_settings = {
         move_speed: 50,
