@@ -15,8 +15,8 @@ class DanceScene extends Phaser.Scene {
     }
 
     preload(){
-        this.load.image('white square', './assets/White square.png');
-        this.load.image('white arrow', './assets/White arrow.png');
+        this.load.image('white square', './assets/white square.png');
+        this.load.image('white arrow', './assets/white arrow.png');
     }
 
     create(){
