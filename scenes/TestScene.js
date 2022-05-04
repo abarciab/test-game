@@ -62,6 +62,7 @@ class TestScene extends Phaser.Scene {
                 break;
         }
 
+        console.log(this.enemy.arrow);
         this.moveEnemy(this.enemy);
     }
 
