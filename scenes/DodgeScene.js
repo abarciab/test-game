@@ -31,7 +31,7 @@ class DodgeScene extends Phaser.Scene {
         //player
         this.player = {
             obj: this.physics.add.sprite(game.config.width/2, game.config.height/2, 'white square'),
-            health: game_settings.player_max_health,
+            health: game_settings.max_health,
         }
         this.player.obj.setDrag(0.01);
         this.player.obj.setDamping(true);
@@ -40,7 +40,7 @@ class DodgeScene extends Phaser.Scene {
         this.enemies = [];
         this.spawnEnemy();
         this.attacking_enemies = [];  
-        this.physics.add.overlap(this.player.obj, this.enemies, this.enemyPlayerCollision.bind(this));
+        
 
         //UI
         this.score = 0;
@@ -50,6 +50,7 @@ class DodgeScene extends Phaser.Scene {
     }
 
     update(time, delta){
+
         //player movement
         if (key_left.isDown){
             this.movePlayer("LEFT");
@@ -67,11 +68,14 @@ class DodgeScene extends Phaser.Scene {
             this.playerAttack();
         }
 
+        //enemies
         this.updateEnemies();
         this.timePlayed += delta;
         if (Math.floor(this.timePlayed/game_settings.enemy_spawn_timer) > this.enemies.length-1){
             this.spawnEnemy();
         }
+
+       
 
         //scene management
         if (Phaser.Input.Keyboard.JustDown(key_prev)){
@@ -84,29 +88,23 @@ class DodgeScene extends Phaser.Scene {
 
     updateUI(){
         this.score_text.text = `SCORE: ${this.score}`;
-        this.health_text.text = `HEALTH: ${this.player.health}`;
+        this.health_text.text = `LIVES: ${this.player.health}`;
     }
 
     playerAttack(){
         if (this.attacking_enemies[0]){
             this.attacking_enemies[0].attacking = false;
-            //this.player.obj.setPosition(this.attacking_enemies[0].obj.x, this.attacking_enemies[0].obj.y);
             this.setRandomPositionOutside(this.attacking_enemies[0].obj);
-
-            //this.spawnEnemy();
+            this.score += 10;
+            this.updateUI();
             this.attacking_enemies.shift();
-        }
-    }
-
-    enemyPlayerCollision(player, enemy){
-        if (enemy.attacking){
-            this.killPlayer();
         }
     }
 
     killPlayer(){
         this.cameras.main.shake(150, 0.003);
         this.player.health -= 1;
+        this.updateUI();
         if (this.player.health <= 0){
             this.scene.restart();
         }
@@ -174,25 +172,37 @@ class DodgeScene extends Phaser.Scene {
     enemyAttack(enemy){        
         enemy.obj.setAlpha(0.3);
         
-        if (enemy.dir.right){
-            enemy.obj.x += game_settings.enemy_attack_dist;
-        }
-        if (enemy.dir.left){
-            enemy.obj.x -= game_settings.enemy_attack_dist;
-        }
-        if (enemy.dir.up){
-            enemy.obj.y -= game_settings.enemy_attack_dist;
-        }
-        if (enemy.dir.down){
-            enemy.obj.y += game_settings.enemy_attack_dist;
+        if(enemy.attacking && Phaser.Math.Distance.Between(enemy.obj.x, enemy.obj.y, this.player.obj.x, this.player.obj.y) < 200){
+
+            if (enemy.dir.right){
+                enemy.obj.x += game_settings.enemy_attack_dist;
+            }
+            if (enemy.dir.left){
+                enemy.obj.x -= game_settings.enemy_attack_dist;
+
+            }
+            if (enemy.dir.up){
+                enemy.obj.y -= game_settings.enemy_attack_dist;
+            }
+            if (enemy.dir.down){
+                enemy.obj.y += game_settings.enemy_attack_dist;
+            }
+
+            this.player.health -= 1;
+            if (this.player.health <= 0){
+                this.scene.restart();
+            }
+            this.updateUI();
         }
 
         for(let i = 0; i < this.attacking_enemies.length; i++){
             if (this.attacking_enemies[i] == enemy){
                 this.attacking_enemies.splice(i, 1);
+                this.time.delayedCall(150, function() {this.setRandomPositionOutside(enemy.obj)}, null, this)
             }
         }
 
+        
         enemy.attacking = false;
     }
 
