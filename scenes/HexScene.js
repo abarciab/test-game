@@ -45,10 +45,10 @@ class HexScene extends Phaser.Scene {
         //enemies
         this.enemy = {
             obj: this.physics.add.sprite(game.config.width/2, game.config.height/2, 'white square').setScale(game_settings.objScale).setTint(0xaa0000).setAlpha(0.5),
-            hex_pos: new Phaser.Math.Vector2(5, 2),
+            hex_pos: new Phaser.Math.Vector2(5, 3),
             current_state_pattern: null,
             current_state: null,
-            patrol_state: [[4, "RIGHT", 500],["LEFT UP", 500],[4, "LEFT", 500],["RIGHT DOWN", 500]],
+            patrol_state: [["RIGHT", 500],["RIGHT UP", 500],["LEFT UP", 500], ["LEFT", 500],["LEFT DOWN", 500],["RIGHT DOWN", 500]],
             attack_state: [["CHASE", 500]],
             current_countdown: 0,
             conditions: [["DIST+", 4, "PATROL"],["DIST-", 4, "ATTACK"]],
@@ -101,8 +101,10 @@ class HexScene extends Phaser.Scene {
             this.skipNext = false;
         }
         
+        //enemies
         this.updateEnemies(delta);
 
+        //scene management
         if (Phaser.Input.Keyboard.JustDown(key_next)){
             this.scene.start('DanceScene');
         }
@@ -116,33 +118,32 @@ class HexScene extends Phaser.Scene {
     }
 
     updateEnemy(enemy, delta){
+        //check if we need to switch to a different state
         this.checkEnemyConditions(enemy);
 
         if (enemy.current_state_pattern == null){
             return;
         }
+
+        //decrement timer - perform next action, if necesary...
         enemy.current_countdown -= delta;
         if (enemy.current_countdown <= 0){
             this.enemyNextAction(enemy)
         } 
     }
 
-    enemyNextAction(enemy){
-        
+    enemyNextAction(enemy){        
         if (!isNaN(enemy.current_state_pattern[0][0])){
-            console.log(`this enemy's next state (${enemy.current_state_pattern[0][1]}) should be duplicated ${enemy.current_state_pattern[0][0]} times`);
             let num_times = enemy.current_state_pattern[0][0];
             enemy.current_state_pattern[0].shift();
             for (let i = 0; i < num_times-1; i++){
                 console.log(`duplicating ${enemy.current_state_pattern[0][0]}`);
-                enemy.current_state_pattern.push(enemy.current_state_pattern[0]);
+                enemy.current_state_pattern.unshift(enemy.current_state_pattern[0]);
             }
-        } else {
-            //console.log(enemy.current_state_pattern[0])
-        }
+        } 
         this.takeEnemyAction(enemy, enemy.current_state_pattern[0][0]);
-        enemy.current_state_pattern.push(enemy.current_state_pattern.shift());
         enemy.current_countdown = enemy.current_state_pattern[0][1];
+        enemy.current_state_pattern.push(enemy.current_state_pattern.shift());
     }
 
     checkEnemyConditions(enemy){
@@ -228,6 +229,7 @@ class HexScene extends Phaser.Scene {
             change.x = 0;
         }
         container.hex_pos.add(change);
+
         this.setHexPos(container);
     }
 
@@ -260,6 +262,7 @@ class HexScene extends Phaser.Scene {
                 container.hex_pos.x += 1;
                 break;
             case "LEFT UP": 
+                
                 container.hex_pos.y -= 1;
                 break;
             case "RIGHT UP": 
