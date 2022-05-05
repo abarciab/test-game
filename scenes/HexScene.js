@@ -44,15 +44,16 @@ class HexScene extends Phaser.Scene {
 
         //enemies
         this.enemy = {
-            obj: this.physics.add.sprite(game.config.width/2, game.config.height/2, 'white square').setScale(game_settings.objScale).setTint(0xaa0000),
-            hex_pos: new Phaser.Math.Vector2(5, 10),
+            obj: this.physics.add.sprite(game.config.width/2, game.config.height/2, 'white square').setScale(game_settings.objScale).setTint(0xaa0000).setAlpha(0.5),
+            hex_pos: new Phaser.Math.Vector2(5, 2),
+            current_state_pattern: null,
             current_state: null,
-            patrol_state: [["RIGHT", 500],["LEFT UP", 500],["LEFT", 500],["RIGHT DOWN", 500]],
-            attack_state: [["CHASE", 200]],
+            patrol_state: [[4, "RIGHT", 500],["LEFT UP", 500],[4, "LEFT", 500],["RIGHT DOWN", 500]],
+            attack_state: [["CHASE", 500]],
             current_countdown: 0,
-            conditions: [["PATROL", "DIST+", 6],["ATTACK", "DIST-", 6]],
+            conditions: [["DIST+", 4, "PATROL"],["DIST-", 4, "ATTACK"]],
         }
-        this.enemySetState(this.enemy, this.enemy.patrol_state);
+        this.enemySetState(this.enemy, this.enemy.patrol_state, "PATROL");
         this.setHexPos(this.enemy);
     }
 
@@ -101,6 +102,13 @@ class HexScene extends Phaser.Scene {
         }
         
         this.updateEnemies(delta);
+
+        if (Phaser.Input.Keyboard.JustDown(key_next)){
+            this.scene.start('DanceScene');
+        }
+        if (Phaser.Input.Keyboard.JustDown(key_next)){
+            this.scene.start('DodgeScene');
+        }
     }
 
     updateEnemies(delta){
@@ -110,19 +118,76 @@ class HexScene extends Phaser.Scene {
     updateEnemy(enemy, delta){
         this.checkEnemyConditions(enemy);
 
-        if (enemy.current_state == null){
+        if (enemy.current_state_pattern == null){
             return;
         }
         enemy.current_countdown -= delta;
         if (enemy.current_countdown <= 0){
-            this.takeEnemyAction(enemy, enemy.current_state[0][0]);
-            enemy.current_state.push(enemy.current_state.shift());
-            enemy.current_countdown = enemy.current_state[0][1];
+            this.enemyNextAction(enemy)
         } 
     }
 
-    checkEnemyConditions(enemy){
+    enemyNextAction(enemy){
+        
+        if (!isNaN(enemy.current_state_pattern[0][0])){
+            console.log(`this enemy's next state (${enemy.current_state_pattern[0][1]}) should be duplicated ${enemy.current_state_pattern[0][0]} times`);
+            let num_times = enemy.current_state_pattern[0][0];
+            enemy.current_state_pattern[0].shift();
+            for (let i = 0; i < num_times-1; i++){
+                console.log(`duplicating ${enemy.current_state_pattern[0][0]}`);
+                enemy.current_state_pattern.push(enemy.current_state_pattern[0]);
+            }
+        } else {
+            //console.log(enemy.current_state_pattern[0])
+        }
+        this.takeEnemyAction(enemy, enemy.current_state_pattern[0][0]);
+        enemy.current_state_pattern.push(enemy.current_state_pattern.shift());
+        enemy.current_countdown = enemy.current_state_pattern[0][1];
+    }
 
+    checkEnemyConditions(enemy){
+        enemy.conditions.forEach(condition => {
+            let passed = false;
+            switch(condition[0]){
+                case "DIST+":
+                    if (this.getHexDist(enemy, this.player) > condition[1]){
+                        passed = true;
+                    }
+                    break;
+                case "DIST-":
+                    if (this.getHexDist(enemy, this.player) < condition[1]){
+                        passed = true;
+                    }
+                    break;
+                default:
+                    console.log(`Invalid condition checked: ${condition[0]}`);
+                    break;
+            }
+            if (passed){
+                if (enemy.current_state == condition[2]){
+                    return;
+                }
+                switch(condition[2]){
+                    case "PATROL":
+                        enemy.obj.setAlpha(0.5);
+                        this.enemySetState(enemy, enemy.patrol_state, "PATROL");
+                        break;
+                    case "ATTACK": 
+                        enemy.obj.setAlpha(1);
+                        this.enemySetState(enemy, enemy.attack_state, "ATTACK");
+                        break;
+                }
+                return;
+            }
+        });
+    }
+
+    getHexDist(container1, container2){
+        return Math.max(
+            Math.abs(container2.hex_pos.y - container1.hex_pos.y),     
+            Math.abs(container2.hex_pos.x - container1.hex_pos.x),
+            Math.abs((container2.hex_pos.x - container2.hex_pos.y)*-1 - (container1.hex_pos.x - container1.hex_pos.y)*-1)
+       )-1
     }
 
     takeEnemyAction(enemy, action){
@@ -135,15 +200,44 @@ class HexScene extends Phaser.Scene {
             case "LEFT DOWN":
                 this.moveHexObj(enemy, action);
                 break;
+            case "CHASE":
+                this.moveTo(enemy, this.player);
+                break;
             default: 
                 console.log(`invalid action selected. add additional options at my location`);
                 break;
         }
     }
 
-    enemySetState(enemy, state){
-        enemy.current_state = state;
-        enemy.current_countdown = enemy.current_state[0][1];
+    moveTo(container, target){
+        let change = new Phaser.Math.Vector2(0,0);
+
+        if (container.hex_pos.y < target.hex_pos.y){
+            change.y += 1;
+        } else if (container.hex_pos.y > target.hex_pos.y){
+            change.y -= 1;
+        }
+
+        if (container.hex_pos.x < target.hex_pos.x){
+            change.x += 1;
+        } else if (container.hex_pos.x > target.hex_pos.x){
+            change.x -= 1;
+        }
+
+        if ((change.x == 1 && change.y == 1) || (change.x == -1 && change.y == -1)){
+            change.x = 0;
+        }
+        container.hex_pos.add(change);
+        this.setHexPos(container);
+    }
+
+    enemySetState(enemy, state, state_name){
+        enemy.current_state_pattern = state;
+        enemy.current_state = state_name;
+        this.enemyNextAction(enemy);
+        //enemy.current_countdown = enemy.current_state_pattern[0][1];
+        
+        console.log(`state: ${state_name}`);
     }
 
     SetupKeys(){

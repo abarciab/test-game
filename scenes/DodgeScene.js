@@ -82,7 +82,7 @@ class DodgeScene extends Phaser.Scene {
             this.scene.start('DashScene');
         }
         if (Phaser.Input.Keyboard.JustDown(key_next)){
-            this.scene.start('DanceScene');
+            this.scene.start('HexScene');
         }
     }
 
@@ -167,6 +167,8 @@ class DodgeScene extends Phaser.Scene {
                 this.enemyAttack(enemy);
             }
         }
+        
+        
     }
 
     enemyAttack(enemy){        
