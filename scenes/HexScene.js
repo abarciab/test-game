@@ -123,8 +123,8 @@ class HexScene extends Phaser.Scene {
         if (Phaser.Input.Keyboard.JustDown(key_next)){
             this.scene.start('DanceScene');
         }
-        if (Phaser.Input.Keyboard.JustDown(key_next)){
-            this.scene.start('DodgeScene');
+        if (Phaser.Input.Keyboard.JustDown(key_prev)){
+            this.scene.start('SlideScene');
         }
     }
 
@@ -157,6 +157,7 @@ class HexScene extends Phaser.Scene {
                     attack_state: [["CHASE"]],
                     speed: 500,
                     current_countdown: 0,
+                    unstackable: true,
                     conditions: [["DIST+", 4, "PATROL"],["DIST-", 4, "ATTACK"]],
                 }
                 this.enemySetState(new_enemy, new_enemy.patrol_state, "PATROL");
@@ -293,7 +294,7 @@ class HexScene extends Phaser.Scene {
             case "LEFT UP":
             case "RIGHT DOWN":
             case "LEFT DOWN":
-                this.moveHexObj(enemy, action);
+                this.moveHexObj(enemy, action, null, );
                 break;
             case "CHASE":
                 this.moveTo(enemy, this.player);
@@ -379,8 +380,8 @@ class HexScene extends Phaser.Scene {
         key_next = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT); 
     }
     
-    // 99% of the time, call with only a container and a dir. if you already know the change you want to make to the hex_pos directky, call with any other string and pass the change
-    moveHexObj(container, dir, change = new Phaser.Math.Vector2(0, 0)){
+    // 99% of the time, call with only a container and a dir. if you already know the specific change you want to make to the hex_pos, call with any other string and pass the change
+    moveHexObj(container, dir, change = new Phaser.Math.Vector2(0, 0), ){
 
         switch(dir){
             case "LEFT": 

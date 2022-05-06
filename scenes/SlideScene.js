@@ -1,8 +1,8 @@
-function initDodge(){
+function initSlide(){
     console.log('initializing dodge scene');
 
     game_settings = {
-        player_move_speed: 120,
+        player_move_speed: 160,
         enemy_speed: 100,
         max_health: 3,
         enemy_range: 55,
@@ -12,9 +12,9 @@ function initDodge(){
     }
 }
 
-class DodgeScene extends Phaser.Scene {
+class SlideScene extends Phaser.Scene {
     constructor() {
-        super("DodgeScene");   
+        super("SlideScene");   
     }
 
     preload(){
@@ -22,7 +22,7 @@ class DodgeScene extends Phaser.Scene {
     }
 
     create(){
-        initDodge();
+        initSlide();
 
         this.SetupKeys();
 
@@ -93,6 +93,18 @@ class DodgeScene extends Phaser.Scene {
 
     playerAttack(){
         if (this.attacking_enemies[0]){
+            if (this.attacking_enemies[0].dir.left){
+                this.movePlayer("LEFT");
+            }
+            if (this.attacking_enemies[0].dir.right){
+                this.movePlayer("RIGHT");
+            }
+            if (this.attacking_enemies[0].dir.up){
+                this.movePlayer("UP");
+            }
+            if (this.attacking_enemies[0].dir.down){
+                this.movePlayer("DOWN");
+            }
             this.attacking_enemies[0].attacking = false;
             this.setRandomPositionOutside(this.attacking_enemies[0].obj);
             this.score += 10;

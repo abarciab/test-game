@@ -92,7 +92,7 @@ class DashScene extends Phaser.Scene {
             this.scene.start('DanceScene');
         }
         if (Phaser.Input.Keyboard.JustDown(key_next)){
-            this.scene.start('DodgeScene');
+            this.scene.start('SlideScene');
         }
     }
 

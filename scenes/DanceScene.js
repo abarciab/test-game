@@ -58,6 +58,9 @@ class DanceScene extends Phaser.Scene {
         if (Phaser.Input.Keyboard.JustDown(key_next)){
             this.scene.start('DashScene');
         }
+        if (Phaser.Input.Keyboard.JustDown(key_prev)){
+            this.scene.start('HexScene');
+        }
     }
 
     updateUI(){
