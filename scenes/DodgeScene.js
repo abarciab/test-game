@@ -33,7 +33,7 @@ class DodgeScene extends Phaser.Scene {
             obj: this.physics.add.sprite(game.config.width/2, game.config.height/2, 'white square'),
             health: game_settings.max_health,
         }
-        this.player.obj.setDrag(0.01);
+        this.player.obj.setDrag(0.5);
         this.player.obj.setDamping(true);
 
         //enemies
