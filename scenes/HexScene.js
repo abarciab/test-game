@@ -294,7 +294,7 @@ class HexScene extends Phaser.Scene {
             case "LEFT UP":
             case "RIGHT DOWN":
             case "LEFT DOWN":
-                this.moveHexObj(enemy, action, null, );
+                this.moveHexObj(enemy, action);
                 break;
             case "CHASE":
                 this.moveTo(enemy, this.player);
