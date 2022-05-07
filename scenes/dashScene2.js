@@ -193,13 +193,13 @@ class DashScene2 extends Phaser.Scene {
     enemyPlayerCollision(playerObj, enemy){
         if (this.player.dashing){
             this.score += 10;
-            enemy.health -= 1;
+            /*enemy.health -= 1;
             enemy.setAlpha(enemy.alpha/2);
             if (enemy.health <= 0){
                 enemy.health = 1;
                 enemy.setAlpha(1);
                 this.setRandomPositionOutside(enemy);
-            }
+            }*/
         } else {
             this.player.health-= 1;
             if (this.player.health == 0){
