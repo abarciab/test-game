@@ -6,6 +6,7 @@ class ChargerEnemy extends Phaser.Physics.Arcade.Sprite {
 
         this.type = "CHARGER";
         this.speed = game_settings.charger_speed;
+        this.health = game_settings.charger_health;
     }
 
     //this enemy will just always move toward the player
@@ -33,7 +34,7 @@ class GolemEnemy extends Phaser.Physics.Arcade.Sprite {
         scene.add.existing(this);
 
         this.type = "GOLEM";
-        this.speed = game_settings.charger_speed;
+        this.speed = game_settings.golem_speed;
         this.setDrag(0.05);
         this.setDamping(true);
     }

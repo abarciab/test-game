@@ -8,8 +8,10 @@ function initDash2(){
         player_max_health: 5,
 
         charger_speed: 30,
-        golem_speed: 30,
-        golem_agro_range: 280,
+            charger_health: 1,
+        golem_speed: 10,
+            golem_health: 2,
+            golem_agro_range: 280,
         enemy_spawn_timer: 8000,
     }
 }
@@ -30,11 +32,11 @@ class DashScene2 extends Phaser.Scene {
 
         this.SetupKeys();
 
-        this.cameras.main.setBackgroundColor('#101010');
+        this.cameras.main.setBackgroundColor('#0000aa');
 
         //player
         this.player = {
-            obj: this.physics.add.sprite(game.config.width/2, game.config.height/2, 'white square').setAlpha(0.1).setScale(0.8),
+            obj: this.physics.add.sprite(game.config.width/2, game.config.height/2, 'white square').setAlpha(0.3).setScale(0.8),
             charge_progress: 0,
             dashing: false,
             health: game_settings.player_max_health,
@@ -44,8 +46,8 @@ class DashScene2 extends Phaser.Scene {
 
         //enemies
         this.enemies = [];
-        this.spawnEnemy("CHARGER");    
-        //this.spawnEnemy("GOLEM"); 
+        //this.spawnEnemy("CHARGER");    
+        this.spawnEnemy("GOLEM"); 
         //this.spawnEnemy("SHOOTER");         
 
         //enemy collisions
@@ -84,9 +86,9 @@ class DashScene2 extends Phaser.Scene {
 
 
         this.timePlayed += delta;
-        if (Math.floor(this.timePlayed/game_settings.enemy_spawn_timer) > this.enemies.length-1){
+        /*if (Math.floor(this.timePlayed/game_settings.enemy_spawn_timer) > this.enemies.length-1){
             this.spawnEnemy("CHARGER");
-        }
+        }*/
 
         //player dash
         if (Math.abs(this.player.obj.body.velocity.x) <= game_settings.player_walk_speed && Math.abs(this.player.obj.body.velocity.y) <= game_settings.player_walk_speed){
@@ -102,7 +104,7 @@ class DashScene2 extends Phaser.Scene {
                 this.dash();
             }
             this.player.charge_progress = 0;
-            this.player.obj.setAlpha(0.1);
+            this.player.obj.setAlpha(0.3);
         }
         
         //player movement
@@ -201,7 +203,7 @@ class DashScene2 extends Phaser.Scene {
             
         }
 
-        this.setRandomPositionOutside(enemy);
+        //this.setRandomPositionOutside(enemy);
         this.updateUI();
     }
 
