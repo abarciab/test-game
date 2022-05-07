@@ -13,6 +13,7 @@ function initHex(){
         gridSize: new Phaser.Math.Vector2(19, 15),
         max_health: 5,
         num_sentinals: 0,
+        num_shooters: 0,
         num_runners: 2,
         runner_respawn_time: 2000,
         show_grid_coords: false,
@@ -55,6 +56,9 @@ class HexScene extends Phaser.Scene {
         }
         for(let i = 0; i < game_settings.num_runners; i++){
             this.spawnEnemy("RUNNER");
+        }
+        for(let i = 0; i < game_settings.num_shooters;i++){
+            this.spawnEnemy("SHOOTER");
         }
         this.extra_sentinals = 0;
         
@@ -141,6 +145,10 @@ class HexScene extends Phaser.Scene {
 
     setRandomHexPos(container){
         container.hex_pos.set(Phaser.Math.Between(2, game_settings.gridSize.x-2), Phaser.Math.Between(2, game_settings.gridSize.y-2));
+
+        while(!this.inBounds(container)){
+            container.hex_pos.set(Phaser.Math.Between(2, game_settings.gridSize.x-2), Phaser.Math.Between(2, game_settings.gridSize.y-2));
+        }
     }
 
     spawnEnemy(type){
@@ -149,7 +157,8 @@ class HexScene extends Phaser.Scene {
 
         switch(type){
             case "SENTINAL":
-                new_enemy = { obj: this.physics.add.sprite(game.config.width/2, game.config.height/2, 'white square').setScale(game_settings.objScale).setTint(0xaa0000).setAlpha(0.5),
+                new_enemy = { 
+                    obj: this.physics.add.sprite(game.config.width/2, game.config.height/2, 'white square').setScale(game_settings.objScale).setTint(0xaa0000).setAlpha(0.5),
                     hex_pos: new Phaser.Math.Vector2(Phaser.Math.Between(2, game_settings.gridSize.x-2), Phaser.Math.Between(2, game_settings.gridSize.y-2)),
                     current_state_pattern: null,
                     current_state: null,
@@ -159,6 +168,21 @@ class HexScene extends Phaser.Scene {
                     current_countdown: 0,
                     unstackable: true,
                     conditions: [["DIST+", 4, "PATROL"],["DIST-", 4, "ATTACK"]],
+                }
+                this.enemySetState(new_enemy, new_enemy.patrol_state, "PATROL");
+                break;
+            case "SHOOTER":
+                new_enemy = { 
+                    obj: this.physics.add.sprite(game.config.width/2, game.config.height/2, 'white square').setScale(game_settings.objScale).setTint(0x00aa00).setAlpha(0.5),
+                    hex_pos: new Phaser.Math.Vector2(Phaser.Math.Between(2, game_settings.gridSize.x-2), Phaser.Math.Between(2, game_settings.gridSize.y-2)),
+                    current_state_pattern: null,
+                    current_state: null,
+                    patrol_state: [[3, "RIGHT"],[4, "LEFT UP"], [3, "RIGHT"],[5, "LEFT DOWN"], [2,"RANDOM MOVE"]],
+                    attack_state: [["RADOM MOVE"],["SHOOT"]],
+                    speed: 500,
+                    current_countdown: 0,
+                    unstackable: true,
+                    conditions: [["SECONDS %", 4, "ATTACK"], ["ELSE", null, "PATROL"]],
                 }
                 this.enemySetState(new_enemy, new_enemy.patrol_state, "PATROL");
                 break;
@@ -299,6 +323,8 @@ class HexScene extends Phaser.Scene {
             case "CHASE":
                 this.moveTo(enemy, this.player);
                 if (enemy.hex_pos.equals(this.player.hex_pos)){
+                    this.setRandomHexPos(enemy);
+                    this.setHexPos(enemy);
                     this.damagePlayer();
                 }
                 break;

@@ -79,7 +79,7 @@ class SlideScene extends Phaser.Scene {
 
         //scene management
         if (Phaser.Input.Keyboard.JustDown(key_prev)){
-            this.scene.start('DashScene');
+            this.scene.start('DashScene2');
         }
         if (Phaser.Input.Keyboard.JustDown(key_next)){
             this.scene.start('HexScene');

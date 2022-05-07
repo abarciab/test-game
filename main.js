@@ -6,7 +6,7 @@ let config = {
         default: "arcade",
         arcade: { fps: 60 } 
     },
-    scene: [HexScene, DanceScene, DashScene, SlideScene]
+    scene: [DashScene2, DashScene, HexScene, DanceScene, SlideScene]
 }
 
 //keys and setup
