@@ -19,6 +19,7 @@ class DashScene2 extends Phaser.Scene {
         super("DashScene2");
     }
 
+    //comment
     preload(){
         this.load.image('white square', './assets/White square.png');
         this.load.image('white hexagon', './assets/White hexagon.png');
