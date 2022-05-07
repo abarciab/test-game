@@ -7,7 +7,9 @@ function initDash2(){
         player_max_charge_progress: 1000,
         player_max_health: 5,
 
-        enemy_walk_speed: 30,
+        charger_speed: 30,
+        golem_speed: 30,
+        golem_agro_range: 280,
         enemy_spawn_timer: 8000,
     }
 }
@@ -19,6 +21,7 @@ class DashScene2 extends Phaser.Scene {
 
     preload(){
         this.load.image('white square', './assets/White square.png');
+        this.load.image('white hexagon', './assets/White hexagon.png');
     }
 
     create(){
@@ -26,7 +29,7 @@ class DashScene2 extends Phaser.Scene {
 
         this.SetupKeys();
 
-        this.cameras.main.setBackgroundColor('#a0a0a0');
+        this.cameras.main.setBackgroundColor('#101010');
 
         //player
         this.player = {
@@ -40,7 +43,9 @@ class DashScene2 extends Phaser.Scene {
 
         //enemies
         this.enemies = [];
-        this.spawnEnemy();        
+        this.spawnEnemy("CHARGER");    
+        //this.spawnEnemy("GOLEM"); 
+        //this.spawnEnemy("SHOOTER");         
 
         //enemy collisions
         this.physics.add.overlap(this.player.obj, this.enemies, this.enemyPlayerCollision.bind(this));
@@ -51,12 +56,35 @@ class DashScene2 extends Phaser.Scene {
         this.score_text = this.add.text(20, 20, "SCORE: 0");
         this.health_text = this.add.text(150, 20, "LIVES: 0");
         this.updateUI();
+        this.paused = false;
+
+        //UI
+        this.pauseLayer = this.add.sprite(game.config.width/2, game.config.height/2, 'white square').setTint(0x010101).setAlpha(0.3).setScale(20,20).setOrigin(0.5).setDepth(5).setVisible(false);
     }
 
     update(time, delta){
+        //pause the game
+        if (Phaser.Input.Keyboard.JustDown(key_esc)){
+            this.paused = !this.paused;
+        }
+        //scene management
+        if (Phaser.Input.Keyboard.JustDown(key_prev)){
+            this.scene.start('DanceScene');
+        }
+        if (Phaser.Input.Keyboard.JustDown(key_next)){
+            this.scene.start('SlideScene');
+        }
+        if (this.paused){
+            this.pause();
+            return;
+        } else {
+            this.pauseLayer.setVisible(false);
+        }
+
+
         this.timePlayed += delta;
         if (Math.floor(this.timePlayed/game_settings.enemy_spawn_timer) > this.enemies.length-1){
-            this.spawnEnemy();
+            this.spawnEnemy("CHARGER");
         }
 
         //player dash
@@ -75,19 +103,7 @@ class DashScene2 extends Phaser.Scene {
             this.player.charge_progress = 0;
             this.player.obj.setAlpha(0.1);
         }
-        /*let dash_charge_cutoff = 50;
-        if (Math.abs(this.player.obj.body.velocity.x) <= dash_charge_cutoff && Math.abs(this.player.obj.body.velocity.y) <= dash_charge_cutoff){
-            this.player.charge_progress += delta;
-            if (this.player.charge_progress > game_settings.player_max_charge_progress){
-                this.player.charge_progress = game_settings.player_max_charge_progress;
-            }
-            this.player.obj.clearTint();
-            this.player.obj.setAlpha(this.player.charge_progress/game_settings.player_max_charge_progress + 0.1);
-            this.player.dashing = false;
-        } else{
-            this.player.charge_progress = 0;
-            this.player.obj.setAlpha(0.3);
-        }*/
+        
         //player movement
         if (key_left.isDown){
             this.movePlayer("LEFT");
@@ -104,13 +120,7 @@ class DashScene2 extends Phaser.Scene {
 
         this.updateEnemies();
         
-        //scene management
-        if (Phaser.Input.Keyboard.JustDown(key_prev)){
-            this.scene.start('DanceScene');
-        }
-        if (Phaser.Input.Keyboard.JustDown(key_next)){
-            this.scene.start('SlideScene');
-        }
+        
     }
 
     dash(){
@@ -125,32 +135,37 @@ class DashScene2 extends Phaser.Scene {
         this.health_text.text = `LIVES: ${this.player.health}`;
     }
 
-    spawnEnemy(){
-        let new_enemy = this.physics.add.sprite(game.config.width/3, game.config.height/2, 'white square').setTint(0xFF0000);
-        this.setRandomPositionOutside(new_enemy);
+    spawnEnemy(type){
+        let new_enemy;
+
+        switch(type){
+            case "CHARGER":
+                new_enemy = new ChargerEnemy(this, 0, 0, 'white square').setTint(0xFF0000);
+                this.setRandomPositionOutside(new_enemy);
+                break;
+            case "GOLEM":
+                new_enemy = new GolemEnemy(this, game.config.width/3, 140, 'white hexagon').setTint(0xaaFF00).setScale(1.5);
+                break;
+            case "SHOOTER":
+                break;
+            default: 
+                console.log(`invalid enemy type requested: ${type}`);
+        }
         this.enemies.push(new_enemy);
     }
 
     updateEnemies(){
         this.enemies.forEach(enemy => {
-            this.updateEnemy(enemy);
+            enemy.update(this);
         });
     }
 
-    updateEnemy(enemy){
-        let buffer = 2;
-        if (this.player.obj.x > enemy.x+buffer){
-            enemy.setVelocityX(game_settings.enemy_walk_speed);
-        }
-        if (this.player.obj.x < enemy.x-buffer){
-            enemy.setVelocityX(-game_settings.enemy_walk_speed);
-        }
-        if (this.player.obj.y > enemy.y+buffer){
-            enemy.setVelocityY(game_settings.enemy_walk_speed);
-        }
-        if (this.player.obj.y < enemy.y-buffer){
-            enemy.setVelocityY(-game_settings.enemy_walk_speed);
-        }
+    pause(){
+        this.pauseLayer.setVisible(true);
+        this.player.obj.body.stop();
+        this.enemies.forEach(enemy => {
+            enemy.body.stop();
+        });
     }
 
     setRandomPositionOutside(obj){
@@ -174,7 +189,6 @@ class DashScene2 extends Phaser.Scene {
 
     enemyPlayerCollision(playerObj, enemy){
         if (this.player.dashing){
-            this.setRandomPositionOutside(enemy);
             this.score += 10;
         } else {
             this.player.health-= 1;
@@ -183,9 +197,10 @@ class DashScene2 extends Phaser.Scene {
             }
             this.cameras.main.shake(150, 0.003);
             playerObj.setPosition(game.config.width/2, game.config.height/2);
-            this.setRandomPositionOutside(enemy);
+            
         }
 
+        this.setRandomPositionOutside(enemy);
         this.updateUI();
     }
 
@@ -238,9 +253,9 @@ class DashScene2 extends Phaser.Scene {
         key_up = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
         key_down = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
         key_space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        key_esc = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
 
         key_prev = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
         key_next = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT); 
     }
-
 }
