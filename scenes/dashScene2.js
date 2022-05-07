@@ -86,9 +86,9 @@ class DashScene2 extends Phaser.Scene {
 
 
         this.timePlayed += delta;
-        /*if (Math.floor(this.timePlayed/game_settings.enemy_spawn_timer) > this.enemies.length-1){
+        if (Math.floor(this.timePlayed/game_settings.enemy_spawn_timer) > this.enemies.length){
             this.spawnEnemy("CHARGER");
-        }*/
+        }
 
         //player dash
         if (Math.abs(this.player.obj.body.velocity.x) <= game_settings.player_walk_speed && Math.abs(this.player.obj.body.velocity.y) <= game_settings.player_walk_speed){
